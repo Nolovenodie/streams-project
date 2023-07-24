@@ -25,16 +25,16 @@
 			<video crossorigin playsinline></video>
 		</div>
 		<script>
-			// const videoInfo = {
-			// 	poster: "http://127.0.0.1:5500/test/300MAAN-637/poster.jpg",
-			// 	source: "http://127.0.0.1:5500/test/300MAAN-637/streams.m3u8",
-			// 	thumbs: "http://127.0.0.1:5500/test/300MAAN-637/thumbs.vtt",
-			// };
 			const videoInfo = {
-				poster: "https://cdn.misty.cat/300MAAN-637/poster.jpg",
-				source: "https://cdn.misty.cat/300MAAN-637/streams.m3u8",
-				thumbs: "https://cdn.misty.cat/300MAAN-637/thumbs.vtt",
+				poster: "http://127.0.0.1:5500/test/demo/poster.jpg",
+				source: "http://127.0.0.1:5500/test/demo/streams.m3u8",
+				thumbs: "http://127.0.0.1:5500/test/demo/thumbs.vtt",
 			};
+			// const videoInfo = {
+			// 	poster: "https://cdn.misty.cat/300MAAN-637/poster.jpg",
+			// 	source: "https://cdn.misty.cat/300MAAN-637/streams.m3u8",
+			// 	thumbs: "https://cdn.misty.cat/300MAAN-637/thumbs.vtt",
+			// };
 
 			document.addEventListener("DOMContentLoaded", () => {
 				const video = document.querySelector("video");
@@ -93,7 +93,7 @@
 								span.innerHTML = `Auto`;
 							}
 						});
-						new Plyr(video, defaultOptions);
+						window.player = new Plyr(video, defaultOptions);
 					});
 					hls.attachMedia(video);
 					window.hls = hls;
@@ -108,9 +108,12 @@
 								}
 							});
 						}
+						if (window.player != undefined) {
+							setTimeout(() => window.player.rewind(0), 500);
+						}
 					}
 				} else {
-					const player = new Plyr(video, defaultOptions);
+					window.player = new Plyr(video, defaultOptions);
 					video.src = src;
 				}
 			});

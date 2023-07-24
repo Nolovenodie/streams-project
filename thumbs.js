@@ -63,7 +63,7 @@ ffmpeg(inputVideo)
 	.outputOptions(`-vf fps=1/${second},scale=${width}:-1`)
 	.output(path.join(framesDir, "%8d.png"))
 	.on("end", async () => {
-		console.log("Frames extracted");
+		console.log("预览图抽帧完毕");
 
 		fs.readdir(framesDir, async (err, files) => {
 			if (err) throw err;
@@ -106,7 +106,7 @@ ffmpeg(inputVideo)
 						)
 						.toFile(path.join(thumbsDir, i + ".jpg"));
 				}
-				console.log("Tile image created successfully");
+				console.log("预览图生成完毕");
 
 				const vttFile = fs.createWriteStream(path.join(outputFolder, "thumbs.vtt"));
 				vttFile.write("WEBVTT\n\n");
@@ -127,7 +127,7 @@ ffmpeg(inputVideo)
 				});
 
 				vttFile.end();
-				console.log("VTT file created successfully");
+				console.log("预览表生成完毕");
 			} catch (err) {
 				console.log(`Error creating tile image: ${err.message}`);
 			} finally {
