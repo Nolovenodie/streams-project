@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Player</title>
+		<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/hls.js/1.4.10/hls.min.js"></script>
+		<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+		<style>
+			.container {
+				max-width: 1280px;
+				margin: auto;
+			}
+			.plyr {
+				--shadow-color: 197deg 32% 65%;
+				border-radius: 12px;
+				box-shadow: 0 0.5px 0.6px hsl(var(--shadow-color) / 0.36), 0 1.7px 1.9px -0.8px hsl(var(--shadow-color) / 0.36), 0 4.3px 4.8px -1.7px hsl(var(--shadow-color) / 0.36), -0.1px 10.6px 11.9px -2.5px hsl(var(--shadow-color) / 0.36);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<video crossorigin playsinline></video>
+		</div>
+		<script>
+			// const videoInfo = {
+			// 	poster: "http://127.0.0.1:5500/test/300MAAN-637/poster.jpg",
+			// 	source: "http://127.0.0.1:5500/test/300MAAN-637/streams.m3u8",
+			// 	thumbs: "http://127.0.0.1:5500/test/300MAAN-637/thumbs.vtt",
+			// };
+			const videoInfo = {
+				poster: "https://cdn.misty.cat/300MAAN-637/poster.jpg",
+				source: "https://cdn.misty.cat/300MAAN-637/streams.m3u8",
+				thumbs: "https://cdn.misty.cat/300MAAN-637/thumbs.vtt",
+			};
+
+			document.addEventListener("DOMContentLoaded", () => {
+				const video = document.querySelector("video");
+				video.poster = videoInfo.poster;
+				const src = videoInfo.source;
+
+				const defaultOptions = {
+					invertTime: false,
+					ratio: "16:9",
+					settings: ["quality", "speed"],
+					controls: ["play-large", "rewind", "play", "fast-forward", "progress", "current-time", "duration", "mute", "captions", "settings", "pip", "fullscreen", document.documentElement.clientWidth >= 768 ? "volume" : null],
+					fullscreen: {
+						enabled: true,
+						fallback: true,
+						iosNative: false,
+						container: null,
+					},
+					speed: {
+						selected: 1,
+						options: [0.25, 0.5, 1, 1.25, 1.5, 2],
+					},
+					i18n: {
+						qualityLabel: {
+							0: "Auto",
+						},
+					},
+					keyboard: {
+						focused: true,
+						global: true,
+					},
+					previewThumbnails: {
+						enabled: true,
+						src: videoInfo.thumbs,
+					},
+				};
+
+				if (Hls.isSupported()) {
+					const hls = new Hls({
+						autoStartLoad: true,
+						maxBufferSize: 1 * 1000 * 1000,
+					});
+					hls.loadSource(src);
+					hls.attachMedia(video);
+					hls.on(Hls.Events.MANIFEST_PARSED, function (event, data) {
+						defaultOptions.quality = {
+							default: 0,
+							options: [...hls.levels.map((l) => l.height).reverse(), 0],
+							forced: true,
+							onChange: (e) => updateQuality(e),
+						};
+						hls.on(Hls.Events.LEVEL_SWITCHED, function (event, data) {
+							var span = document.querySelector(".plyr__menu__container [data-plyr='quality'][value='0'] span");
+							if (hls.autoLevelEnabled) {
+								span.innerHTML = `Auto (${hls.levels[data.level].height}p)`;
+							} else {
+								span.innerHTML = `Auto`;
+							}
+						});
+						new Plyr(video, defaultOptions);
+					});
+					hls.attachMedia(video);
+					window.hls = hls;
+
+					function updateQuality(newQuality) {
+						if (newQuality === 0) {
+							window.hls.currentLevel = -1;
+						} else {
+							window.hls.levels.forEach((level, levelIndex) => {
+								if (level.height === newQuality) {
+									window.hls.currentLevel = levelIndex;
+								}
+							});
+						}
+					}
+				} else {
+					const player = new Plyr(video, defaultOptions);
+					video.src = src;
+				}
+			});
+		</script>
+	</body>
+</html>
