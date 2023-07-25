@@ -1,11 +1,10 @@
-import os
 import sys
 import datetime
 import ffmpeg_streaming
 from ffmpeg_streaming import Formats, Bitrate, Representation, Size
 
 if len(sys.argv) != 2:
-    exit("请传入视频路径")
+    sys.exit("请传入视频路径")
 video_file = sys.argv[1]
 
 

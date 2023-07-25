@@ -4,6 +4,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"fluent-ffmpeg": "^2.1.2",
+		"pkg": "^5.8.1",
 		"sharp": "^0.32.1",
 		"yargs": "^17.7.2"
 	}
