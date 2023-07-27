@@ -10,6 +10,7 @@
 ## 安装环境
 
     pip install -r requirements.txt
+    npm install -g pkg
     npm install
 
 ## 编译依赖
