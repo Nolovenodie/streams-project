@@ -58,6 +58,7 @@ def handle_movie(self, path, outpath):
         def upload_monitor(task_id, per, eta):
             handle_movie.update_state(task_id=task_id, state="PROGRESS", meta={"msg": "上传视频中", "eta": eta, "per": str(round(per * 100, 2)) + "%"})
         rclone_command("move", handle_path, outpath, upload_monitor, self.request.id)
+        shutil.rmtree(handle_path)
 
         return {"msg": "处理完毕", "fault": fault}
 
