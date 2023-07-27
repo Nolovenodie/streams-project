@@ -25,7 +25,7 @@ def _p_open(commands, **options):
     """
     @TODO: add documentation
     """
-    logging.info("ffmpeg running command: {}".format(commands))
+    logging.info("running command: {}".format(commands))
     return subprocess.Popen(shlex.split(commands), **options)
 
 
