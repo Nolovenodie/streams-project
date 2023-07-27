@@ -75,8 +75,11 @@ def get_time(key, string, default):
     """
     @TODO: add documentation
     """
-    time = re.search('(?<={})\w+:\w+:\w+'.format(key), string)
-    return convert_to_sec(time.group(0)) if time else default
+    try:
+        time = re.search('(?<={})\w+:\w+:\w+'.format(key), string)
+        return convert_to_sec(time.group(0)) if time else default
+    except:
+        return None
 
 
 def time_left(start_time, unit, total):
@@ -95,8 +98,7 @@ def deprecated(func):
     @TODO: add documentation
     """
     def deprecated_fun(*args, **kwargs):
-        warnings.warn('The {} method is deprecated and will be removed in a future release'.format(func.__name__)
-                      , DeprecationWarning, stacklevel=2)
+        warnings.warn('The {} method is deprecated and will be removed in a future release'.format(func.__name__), DeprecationWarning, stacklevel=2)
         return func(*args, **kwargs)
     return deprecated_fun
 

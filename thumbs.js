@@ -12,9 +12,14 @@ const argv = yargs(hideBin(process.argv))
 			type: "string",
 		});
 	})
+	.option("output", {
+		alias: "o",
+		description: "输出目录",
+		type: "string",
+	})
 	.option("second", {
 		alias: "s",
-		description: "间隔描述",
+		description: "间隔秒数",
 		type: "number",
 		default: 1,
 	})
@@ -47,7 +52,7 @@ const rows = argv.rows;
 const count = columns * rows;
 
 const videoName = path.basename(inputVideo, path.extname(inputVideo));
-const outputFolder = path.join(path.dirname(inputVideo), videoName);
+const outputFolder = argv.output || path.join(path.dirname(inputVideo), videoName);
 
 const framesDir = path.join(outputFolder, "frames");
 if (!fs.existsSync(framesDir)) {

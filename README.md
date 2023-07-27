@@ -1,35 +1,31 @@
 # Streams Project
 
-> 视频多码率切片，预览视频，预览图表生成，HLS 播放器
+> 云任务视频多码率切片，预览视频，预览图表生成，自动上传结果，HLS 播放器
 
 ## 安装环境
 
--   前往 FFmpeg 官网下载主程序: https://ffmpeg.org/
--   下载你环境的 Releases
+-   下载 FFmpeg: https://ffmpeg.org/download.html
+-   下载 Rclone: https://rclone.org/downloads/
 
-## 使用方法
+## 安装环境
 
-> 如下命令执行后结果将会存放在视频目录下 视频同名文件夹内
-
-**视频转码切片 + 预览视频生成**
-
-    ./streams 视频路径
-
-**预览图表生成**
-
-    ./thumbs 视频路径
-
-    # 更多参数使用帮助查看
-    # ./thumbs --help
-
-## 编译打包
-
-    # 安装编译环境
     pip install -r requirements.txt
     npm install
 
-    # 编译切片程序
-    nuitka --standalone --onefile streams.py
+## 编译依赖
 
     # 编译预览程序
     pkg thumbs.js
+
+    # 更改 thumbs 名称
+    mv thumbs-win.exe thumbs.exe
+    mv thumbs-linux thumbs
+
+## 使用方法
+
+**请修改 app.py 内 Redis 地址后再部署**
+
+    # 部署云任务 Worker
+    celery -A app worker -l error -P eventlet
+
+投递任务的实例在 main.py

@@ -33,7 +33,7 @@ class Process(object):
     out = None
     err = None
 
-    def __init__(self, media, commands: str, monitor: callable = None, **options):
+    def __init__(self, media, commands: str, monitor: callable = None, task_id=None, **options):
         """
         @TODO: add documentation
         """
@@ -48,13 +48,14 @@ class Process(object):
         }
         default_proc_opts.update(options)
         options.update(default_proc_opts)
-        if callable(monitor) or isinstance(getattr(media, 'key_rotation'), HLSKeyInfoFile):
+        if callable(monitor):  # or isinstance(getattr(media, 'key_rotation'), HLSKeyInfoFile):
             self.is_monitor = True
             options.update({
                 'stdin': subprocess.PIPE,
-                'universal_newlines': True
+                # 'universal_newlines': True
             })
 
+        self.task_id = task_id
         self.process = _p_open(commands, **options)
         self.media = media
         self.monitor = monitor
@@ -75,20 +76,26 @@ class Process(object):
         start_time = time.time()
 
         while True:
-            line = self.process.stdout.readline().strip()
+            line = str(self.process.stdout.readline().strip(), "utf-8")
             if line == '' and self.process.poll() is not None:
                 break
 
             if line != '':
                 log += [line]
 
-            if isinstance(getattr(self.media, 'key_rotation'), HLSKeyInfoFile):
-                getattr(self.media, 'key_rotation').rotate_key(line)
+            # if isinstance(getattr(self.media, 'key_rotation'), HLSKeyInfoFile):
+            #     getattr(self.media, 'key_rotation').rotate_key(line)
 
-            if callable(self.monitor):
-                duration = get_time('Duration: ', line, duration)
-                _time = get_time('time=', line, _time)
-                self.monitor(line, duration, _time, time_left(start_time, _time, duration), self.process)
+                if callable(self.monitor):
+                    # try:
+                    duration = get_time('Duration: ', line, duration)
+                    _time = get_time('time=', line, _time)
+                    # except:
+                    #     duration, _time = 1, 1
+                    try:
+                        self.monitor(self.task_id, line, duration, _time, time_left(start_time, _time, duration), self.process)
+                    except:
+                        self.monitor(self.task_id, line)
 
         Process.out = log
 
@@ -118,9 +125,9 @@ class Process(object):
 
         if self.process.poll():
             error = str(Process.err) if Process.err else str(Process.out)
-            logging.error('ffmpeg failed to execute command: {}'.format(error))
-            raise RuntimeError('ffmpeg failed to execute command: ', error)
+            logging.error('failed to execute command: {}'.format(error))
+            raise RuntimeError('failed to execute command: ', error)
 
-        logging.info("ffmpeg executed command successfully")
+        logging.info("executed command successfully")
 
         return Process.out, Process.err

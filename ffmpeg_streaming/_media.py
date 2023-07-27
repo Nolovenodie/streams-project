@@ -72,7 +72,7 @@ class Save(abc.ABC):
         return method
 
     def output(self, output: str = None, clouds: CloudManager = None,
-               run_command: bool = True, ffmpeg_bin: str = 'ffmpeg', monitor: callable = None, **options):
+               run_command: bool = True, ffmpeg_bin: str = 'ffmpeg', monitor: callable = None, task_id=None, **options):
         """
         @TODO: add documentation
         """
@@ -93,7 +93,7 @@ class Save(abc.ABC):
         self.set_up()
 
         if run_command:
-            self.run(ffmpeg_bin, monitor, **options)
+            self.run(ffmpeg_bin, monitor, task_id, **options)
 
         for m3u8 in glob.glob(os.path.join(self.output_, "streams", "*.m3u8")):
             with open(m3u8, "r") as fp:
@@ -109,29 +109,29 @@ class Save(abc.ABC):
         """
         return FFProbe(self.media.input, ffprobe_bin)
 
-    def _run(self, ffmpeg_bin, monitor: callable = None, **options):
+    def _run(self, ffmpeg_bin, monitor: callable = None, task_id=None, **options):
         """
         @TODO: add documentation
         """
-        with Process(self, command_builder(ffmpeg_bin, self), monitor, **options) as process:
+        with Process(self, command_builder(ffmpeg_bin, self), monitor, task_id, **options) as process:
             self.pipe, err = process.run()
 
-    async def async_run(self, ffmpeg_bin, monitor: callable = None, **options):
+    async def async_run(self, ffmpeg_bin, monitor: callable = None, task_id=None, **options):
         """
         @TODO: add documentation
         """
-        self._run(ffmpeg_bin, monitor, **options)
+        self._run(ffmpeg_bin, monitor, task_id, **options)
 
-    def run(self, ffmpeg_bin, monitor: callable = None, **options):
+    def run(self, ffmpeg_bin, monitor: callable = None, task_id=None, **options):
         """
         @TODO: add documentation
         """
         async_run = options.pop('async_run', True)
 
         if async_run:
-            asyncio.run(self.async_run(ffmpeg_bin, monitor, **options))
+            asyncio.run(self.async_run(ffmpeg_bin, monitor, task_id, **options))
         else:
-            self._run(ffmpeg_bin, monitor, **options)
+            self._run(ffmpeg_bin, monitor, task_id, **options)
 
 
 class Streaming(Save, abc.ABC):

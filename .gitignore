@@ -1,8 +1,14 @@
 __pycache__
+/cache
 /build
 /package-lock.json
-/ffmpeg.exe
 /miss.player.html
 /node_modules
 /test
 /yarn.lock
+/ffmpeg
+/ffmpeg.exe
+/rclone
+/rclone.exe
+/thumbs
+/thumbs.exe
