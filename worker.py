@@ -75,8 +75,6 @@ def rclone_command(command, path, outpath, monitor: callable = None, task_id=Non
     command = ["rclone", command, path, outpath, "-P"]
     command = " ".join(command).replace("\\", "/")
 
-    logger.error(command)
-
     def _monitor(task_id, line):
         per_match = re.findall(r"(\d+)%", line)
         eta_match = re.search(r"ETA (.*)s", line)
