@@ -19,8 +19,11 @@
     pkg thumbs.js
 
     # 更改 thumbs 名称
-    mv thumbs-win.exe thumbs.exe
+    # Windows: 更改 thumbs-win.exe 名为 thumbs.exe
     mv thumbs-linux thumbs
+
+    # 赋权
+    chmod 777 thumbs
 
 ## 使用方法
 
@@ -30,7 +33,7 @@
     cp sample.env .env
 
     # 部署云任务 Worker
-    # Windows因Celery原因不适用, 如需测试请加上 -P eventlet 后再运行
+    # Windows: 因 Celery 不兼容, 如需测试请加上 -P eventlet 后再运行
     celery -A app worker -l error
 
 投递任务的实例在 main.py

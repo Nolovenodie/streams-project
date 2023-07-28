@@ -158,7 +158,7 @@ def preview_generate(path, outpath, count=15):
 
 
 def thumbs_generate(video_path, outpath, second=3):
-    command = ["thumbs", "'" + video_path + "'"]
+    command = [os.path.join(".", "thumbs"), "'" + video_path + "'"]
     command += cnv_options_to_args({
         "o": outpath,
         "s": second
