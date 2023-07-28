@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 import glob
 import shutil
 import datetime
@@ -40,11 +41,16 @@ def handle_movie(self, path, outpath):
             handle_movie.update_state(task_id=task_id, state="PROGRESS", meta={"msg": "处理视频中", "eta": eta, "per": str(round(per * 100, 2)) + "%"})
         convert_video(video_file, handle_path, convert_monitor, self.request.id)
 
-        # 处理预览视频及预览图
+        # 处理预览视频
         self.update_state(state="PROGRESS", meta={"msg": "准备生成 Preview"})
         preview_generate(handle_path, handle_path)
+
+        # 处理预览表
         self.update_state(state="PROGRESS", meta={"msg": "准备生成 Thumbs"})
-        thumbs_generate(video_file, handle_path)
+
+        def thumbs_monitor(task_id, per, eta):
+            handle_movie.update_state(task_id=task_id, state="PROGRESS", meta={"msg": "处理预览表中", "eta": eta, "per": str(round(per * 100, 2)) + "%"})
+        thumbs_generate(video_file, handle_path, monitor=thumbs_monitor, task_id=self.request.id)
 
         # 元数据转移
         fault = move_metadata(download_path, handle_path)
@@ -62,9 +68,6 @@ def handle_movie(self, path, outpath):
         error_message = str(e)
         self.update_state(state='FAILURE', meta={"msg": error_message})
         raise
-
-
-# app.register_task(handle_movie)
 
 
 def rclone_command(command, path, outpath, monitor: callable = None, task_id=None):
@@ -157,14 +160,36 @@ def preview_generate(path, outpath, count=15):
         process.run()
 
 
-def thumbs_generate(video_path, outpath, second=3):
-    command = [os.path.join(".", "thumbs"), "'" + video_path + "'"]
+def thumbs_generate(video_file, outpath, second=3, width=300, monitor: callable = None, task_id=None):
+    def _monitor(task_id, line, duration, time_, time_left, process):
+        try:
+            monitor(task_id, time_ / duration, str(datetime.timedelta(seconds=int(time_left))))
+        except Exception as e:
+            logger.error(str(e))
+
+    # 视频抽帧
+    frames_path = os.path.join(outpath, "frames")
+    mkdir(frames_path)
+
+    command = ["ffmpeg", "-i", f"'{video_file}'", "-y"]
+    command += cnv_options_to_args({
+        "vf": f"fps=1/{second},scale={width}:-1",
+        "progress": "pipe:1"
+    })
+    command += [os.path.join(frames_path, "%8d.png")]
+    command = " ".join(command).replace("\\", "/")
+
+    with Process(None, command, _monitor, task_id) as process:
+        process.run()
+
+    # 合成精灵表
+    command = ["thumbs" if sys.platform == "win32" else os.path.join(".", "thumbs"), "'" + frames_path + "'"]
     command += cnv_options_to_args({
         "o": outpath,
+        "w": width,
         "s": second
     })
     command = " ".join(command).replace("\\", "/")
-    print(command)
 
     with Process(None, command) as process:
         process.run()

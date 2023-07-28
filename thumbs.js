@@ -1,4 +1,3 @@
-const ffmpeg = require("fluent-ffmpeg");
 const sharp = require("sharp");
 const fs = require("fs");
 const path = require("path");
@@ -8,7 +7,7 @@ const { hideBin } = require("yargs/helpers");
 const argv = yargs(hideBin(process.argv))
 	.command("$0 <input>", "主命令", (yargs) => {
 		yargs.positional("input", {
-			describe: "视频文件",
+			describe: "帧图片目录",
 			type: "string",
 		});
 	})
@@ -64,80 +63,72 @@ if (!fs.existsSync(thumbsDir)) {
 	fs.mkdirSync(thumbsDir, { recursive: true });
 }
 
-ffmpeg(inputVideo)
-	.outputOptions(`-vf fps=1/${second},scale=${width}:-1`)
-	.output(path.join(framesDir, "%8d.png"))
-	.on("end", async () => {
-		console.log("预览图抽帧完毕");
+fs.readdir(framesDir, async (err, files) => {
+	if (err) throw err;
 
-		fs.readdir(framesDir, async (err, files) => {
-			if (err) throw err;
+	if (files.length === 0) {
+		console.log("No frames were extracted");
+		return;
+	}
 
-			if (files.length === 0) {
-				console.log("No frames were extracted");
-				return;
-			}
+	const imagePromises = files.map((file) => sharp(path.join(framesDir, file)).resize(width).toBuffer());
 
-			const imagePromises = files.map((file) => sharp(path.join(framesDir, file)).resize(width).toBuffer());
+	try {
+		// probably don't have to do this...
+		const images = await Promise.all(imagePromises);
+		const imageHeights = images.map((image) =>
+			sharp(image)
+				.metadata()
+				.then((metadata) => metadata.height)
+		);
+		const imageHeightsResolved = await Promise.all(imageHeights);
+		const height = Math.max(...imageHeightsResolved);
 
-			try {
-				// probably don't have to do this...
-				const images = await Promise.all(imagePromises);
-				const imageHeights = images.map((image) =>
-					sharp(image)
-						.metadata()
-						.then((metadata) => metadata.height)
-				);
-				const imageHeightsResolved = await Promise.all(imageHeights);
-				const height = Math.max(...imageHeightsResolved);
+		const imageSheets = Array.from({ length: Math.ceil(images.length / count) }, (_, index) => images.slice(index * count, (index + 1) * count));
 
-				const imageSheets = Array.from({ length: Math.ceil(images.length / count) }, (_, index) => images.slice(index * count, (index + 1) * count));
+		for (let i = 0; i < imageSheets.length; i++) {
+			await sharp({
+				create: {
+					width: width * columns,
+					height: height * rows,
+					channels: 3,
+					background: { r: 0, g: 0, b: 0 },
+				},
+			})
+				.composite(
+					imageSheets[i].map((image, i) => ({
+						input: image,
+						left: (i % columns) * width,
+						top: Math.floor(i / rows) * height,
+					}))
+				)
+				.toFile(path.join(thumbsDir, i + ".jpg"));
+		}
+		console.log("预览图生成完毕");
 
-				for (let i = 0; i < imageSheets.length; i++) {
-					await sharp({
-						create: {
-							width: width * columns,
-							height: height * rows,
-							channels: 3,
-							background: { r: 0, g: 0, b: 0 },
-						},
-					})
-						.composite(
-							imageSheets[i].map((image, i) => ({
-								input: image,
-								left: (i % columns) * width,
-								top: Math.floor(i / rows) * height,
-							}))
-						)
-						.toFile(path.join(thumbsDir, i + ".jpg"));
-				}
-				console.log("预览图生成完毕");
+		const vttFile = fs.createWriteStream(path.join(outputFolder, "thumbs.vtt"));
+		vttFile.write("WEBVTT\n\n");
 
-				const vttFile = fs.createWriteStream(path.join(outputFolder, "thumbs.vtt"));
-				vttFile.write("WEBVTT\n\n");
+		var frames = 0;
+		imageSheets.map((sheets, i) => {
+			sheets.map((image, j) => {
+				const startTime = new Date(second * frames * 1000).toISOString().substr(11, 12);
+				const endTime = new Date(second * (frames++ + 1) * 1000).toISOString().substr(11, 12);
+				const position = {
+					x: (j % columns) * width,
+					y: Math.floor(j / rows) * height,
+				};
 
-				var frames = 0;
-				imageSheets.map((sheets, i) => {
-					sheets.map((image, j) => {
-						const startTime = new Date(second * frames * 1000).toISOString().substr(11, 12);
-						const endTime = new Date(second * (frames++ + 1) * 1000).toISOString().substr(11, 12);
-						const position = {
-							x: (j % columns) * width,
-							y: Math.floor(j / rows) * height,
-						};
-
-						vttFile.write(`${startTime} --> ${endTime}\n`);
-						vttFile.write(`thumbs/${i}.jpg#xywh=${position.x},${position.y},${width},${height}\n\n`);
-					});
-				});
-
-				vttFile.end();
-				console.log("预览表生成完毕");
-			} catch (err) {
-				console.log(`Error creating tile image: ${err.message}`);
-			} finally {
-				fs.rmSync(framesDir, { recursive: true });
-			}
+				vttFile.write(`${startTime} --> ${endTime}\n`);
+				vttFile.write(`thumbs/${i}.jpg#xywh=${position.x},${position.y},${width},${height}\n\n`);
+			});
 		});
-	})
-	.run();
+
+		vttFile.end();
+		console.log("预览表生成完毕");
+	} catch (err) {
+		console.log(`Error creating tile image: ${err.message}`);
+	} finally {
+		fs.rmSync(framesDir, { recursive: true });
+	}
+});
