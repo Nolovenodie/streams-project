@@ -14,9 +14,7 @@ from utils import md5
 @app.task(bind=True)
 def handle_movie(self, path, outpath):
     try:
-        """
-        开始下载视频
-        """
+        # 开始下载视频
         self.update_state(state="PROGRESS", meta={"msg": "准备下载视频"})
         download_path = os.path.join("cache", md5(os.path.basename(path.replace("'", ""))))
 
@@ -24,9 +22,7 @@ def handle_movie(self, path, outpath):
             handle_movie.update_state(task_id=task_id, state="PROGRESS", meta={"msg": "下载视频中", "eta": eta, "per": str(round(per * 100, 2)) + "%"})
         rclone_command("copy", path, download_path, download_monitor, self.request.id)
 
-        """
-        开始处理视频
-        """
+        # 开始处理视频
         self.update_state(state="PROGRESS", meta={"msg": "准备转码视频"})
 
         # 寻找最大文件判定为视频
@@ -35,7 +31,7 @@ def handle_movie(self, path, outpath):
             raise Exception("视频文件不存在")
         video_file = max(files, key=os.path.getsize)
 
-        # # 创建输出目录
+        # 创建输出目录
         handle_path = download_path + "_output"
         mkdir(handle_path)
 
@@ -50,7 +46,7 @@ def handle_movie(self, path, outpath):
         self.update_state(state="PROGRESS", meta={"msg": "准备生成 Thumbs"})
         thumbs_generate(video_file, handle_path)
 
-        # # 元数据转移
+        # 元数据转移
         fault = move_metadata(download_path, handle_path)
         shutil.rmtree(download_path)
 
