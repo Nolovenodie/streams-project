@@ -5,13 +5,13 @@
 ## 安装环境
 
 -   下载 FFmpeg: https://ffmpeg.org/download.html
--   下载 Rclone: https://rclone.org/downloads/
 
 ## 安装环境
 
     pip install -r requirements.txt
     npm install -g pkg
     npm install
+    curl https://rclone.org/install.sh | sudo bash
 
 ## 编译依赖
 
