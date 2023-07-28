@@ -24,7 +24,10 @@
 
 ## 使用方法
 
-**请修改 app.py 内 Redis 地址后再部署**
+**请修改 sample.env 内 配置 后再部署**
+
+    # 应用配置
+    cp sample.env .env
 
     # 部署云任务 Worker
     # Windows因Celery原因不适用, 如需测试请加上 -P eventlet 后再运行

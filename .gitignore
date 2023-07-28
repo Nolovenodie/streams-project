@@ -12,3 +12,4 @@ __pycache__
 /rclone.exe
 /thumbs
 /thumbs.exe
+.env

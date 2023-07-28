@@ -1,14 +1,17 @@
+import os
 import celery
 from celery.utils.log import get_task_logger
+from dotenv import load_dotenv
 
+load_dotenv()
 logger = get_task_logger(__name__)
 
 app = celery.Celery(
     "streams_project",
-    backend="redis://127.0.0.1:6379/0",
-    broker="redis://127.0.0.1:6379/1",
+    backend=os.environ.get("CELERY_BACKEND"),
+    broker=os.environ.get("CELERY_BROKER"),
     include=["worker"]
 )
 
-# 3并发
-app.conf.worker_concurrency = 3
+# 并发
+app.conf.worker_concurrency = int(os.environ.get("WORKER_CONCURRENCY"))
