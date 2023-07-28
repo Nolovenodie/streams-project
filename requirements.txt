@@ -1,5 +1,4 @@
 celery==5.3.1
 redis==4.6.0
 eventlet==0.33.3
-nuitka==1.7.6
 python-dotenv==1.0.0
