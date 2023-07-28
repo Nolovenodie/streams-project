@@ -27,6 +27,7 @@
 **请修改 app.py 内 Redis 地址后再部署**
 
     # 部署云任务 Worker
-    celery -A app worker -l error -P eventlet
+    # Windows因Celery原因不适用, 如需测试请加上 -P eventlet 后再运行
+    celery -A app worker -l error
 
 投递任务的实例在 main.py
