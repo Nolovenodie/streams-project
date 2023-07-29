@@ -25,7 +25,7 @@
     # 赋权
     chmod 777 thumbs
 
-## 使用方法
+## 部署方法
 
 **请修改 sample.env 内 配置 后再部署**
 
@@ -36,4 +36,7 @@
     # Windows: 因 Celery 不兼容, 如需测试请加上 -P eventlet 后再运行
     celery -A app worker -l error
 
-投递任务的实例在 main.py
+## 投递任务
+
+    from worker import handle_movie
+    print(handle_movie.delay("输入目录", "输出目录").id)

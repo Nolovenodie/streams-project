@@ -13,3 +13,4 @@ __pycache__
 /thumbs
 /thumbs.exe
 .env
+post.py
