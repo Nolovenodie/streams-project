@@ -96,21 +96,21 @@ def move_metadata(path, outpath):
     fault = []
     # nfo
     try:
-        poster = glob.glob(path + "/*.nfo")[0]
+        poster = glob.glob(os.path.join(path, "*.nfo"))[0]
         shutil.move(poster, os.path.join(outpath, "metadata.nfo"))
     except:
         return fault.append("不存在 Nfo")
     # poster
     try:
-        poster = glob.glob(path + "/*poster.*")[0]
+        poster = glob.glob(os.path.join(path, "*poster.*"))[0]
         shutil.move(poster, os.path.join(outpath, "poster.jpg"))
     except:
         return fault.append("不存在 Poster")
     # cover
     try:
-        covers = glob.glob(path + "/*thumb.*")
+        covers = glob.glob(os.path.join(path, "*thumb.*"))
         if len(covers) == 0:
-            covers = glob.glob(path + "/*fanart.*")
+            covers = glob.glob(os.path.join(path, "*fanart.*"))
         cover = covers[0]
         shutil.move(cover, os.path.join(outpath, "cover.jpg"))
     except:
