@@ -40,3 +40,9 @@
 
     from worker import handle_movie
     print(handle_movie.delay("输入目录", "输出目录").id)
+
+---
+
+## 基于项目
+
+- [python-ffmpeg-video-streaming](https://github.com/hadronepoch/python-ffmpeg-video-streaming)
